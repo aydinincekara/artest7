@@ -6,6 +6,7 @@
     <meta name="description" content="Küçükçekmece Belediyesi Gençlik Merkezi Artırılmış Gerçeklik Deneyimi">
     <meta name="format-detection" content="telephone=no">
 
+    <!-- Sosyal paylaşım -->
     <meta property="og:title" content="Küçükçekmece Belediyesi AR Deneyimi">
     <meta property="og:description" content="Dijital sergi - Artırılmış gerçeklik">
     <meta property="og:image" content="media_klasoru/og_image.jpg">
@@ -13,6 +14,7 @@
 
     <title>Küçükçekmece Belediyesi AR Deneyimi</title>
 
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#12141f">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,18 +22,16 @@
     <meta name="apple-mobile-web-app-title" content="KCM AR">
     <link rel="apple-touch-icon" href="media_klasoru/uygulama_ikonu.png">
 
+    <!-- A-Frame & Mind-AR (uyumlu sürümler) -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; width: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: white; -webkit-user-select: none; user-select: none;
+            background-color: #0f111a; color: white; -webkit-user-select: none; user-select: none;
         }
-        html { background-color: #0f111a; }
-        body { background-color: #0f111a; }
-
-        body.ar-active { background-color: transparent !important; }
-        html.ar-active { background-color: transparent !important; }
-        html.ar-active body { background-color: transparent !important; }
 
         .overlay {
             position: fixed; inset: 0; z-index: 1000;
@@ -55,14 +55,14 @@
         .progress-wrapper { position: relative; width: 80px; height: 80px;
             display: flex; justify-content: center; align-items: center;
         }
-        .spinner-ring { position: absolute; width: 100%; height: 100%;
+        .spinner { position: absolute; width: 100%; height: 100%;
             border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid #0056b3;
             border-radius: 50%; animation: spin 1s linear infinite; box-sizing: border-box;
         }
         #progress-text { font-size: 1em; font-weight: bold; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* === 2. KVKK === */
+        /* === 2. KVKK EKRANI === */
         #consent-screen { background-color: rgba(15, 17, 26, 0.98); display: none; }
         .kvkk-card { background-color: #ffffff; color: #333; padding: 25px;
             border-radius: 16px; max-width: 460px; width: 100%;
@@ -91,7 +91,7 @@
         .btn-secondary { background-color: #f0f0f0; color: #555; }
         .btn:active:not(:disabled) { opacity: 0.85; }
 
-        /* === 3. HATA === */
+        /* === 3. HATA EKRANI === */
         #error-screen { background-color: #0f111a; display: none; }
         .error-card { background: #1a1d2b; padding: 30px; border-radius: 16px;
             max-width: 400px; width: 100%; text-align: center;
@@ -104,133 +104,35 @@
         }
 
         /* === 4. TARAMA YÖNLENDİRMESİ === */
-        #scanning-hint {
-            position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-            left: 50%; transform: translateX(-50%); z-index: 90;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 14px 20px; border-radius: 14px;
-            text-align: center; pointer-events: none;
-            transition: opacity 0.4s, transform 0.4s;
-            max-width: 280px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        #scanning-hint { position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 100;
+            background: rgba(0,0,0,0.7); padding: 20px 25px; border-radius: 16px;
+            text-align: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            pointer-events: none; transition: opacity 0.4s; max-width: 280px;
         }
-        #scanning-hint.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); pointer-events: none; }
-        .scan-hint-row { display: flex; align-items: center; gap: 10px; }
-        .scan-pulse {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: rgba(0, 110, 230, 0.9);
-            position: relative; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
-        }
-        .scan-pulse::before {
-            content: ''; position: absolute; inset: 0; border-radius: 50%;
-            border: 2px solid rgba(0, 110, 230, 0.6);
-            animation: pulse 1.6s ease-out infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(2.4); opacity: 0; }
-        }
-        #scanning-hint p { margin: 0; font-size: 0.92em; line-height: 1.3em; }
+        #scanning-hint.hidden { opacity: 0; }
+        #scanning-hint .scan-icon { font-size: 2.5em; margin-bottom: 8px; }
+        #scanning-hint p { margin: 0; font-size: 0.95em; line-height: 1.4em; }
 
-        /* === 5. EŞLEŞME TOAST === */
-        #match-toast {
-            position: fixed; top: calc(20px + env(safe-area-inset-top, 0px));
-            left: 50%; transform: translateX(-50%) translateY(-100px);
-            z-index: 95;
-            background: rgba(20, 130, 80, 0.92);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 12px 20px; border-radius: 30px;
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.95em; font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            opacity: 0; transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.3s;
-            pointer-events: none;
-        }
-        #match-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        #match-toast .check { font-size: 1.1em; }
-
-        /* === 6. VIDEO YÜKLEME === */
-        #video-loading {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            z-index: 95; opacity: 0; pointer-events: none;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            padding: 22px 28px; border-radius: 18px;
-            display: flex; flex-direction: column; align-items: center;
-            gap: 12px; min-width: 180px;
-            border: 1px solid rgba(255,255,255,0.08);
-            transition: opacity 0.25s, transform 0.25s;
-        }
-        #video-loading.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .vid-spinner {
-            width: 40px; height: 40px;
-            border: 3px solid rgba(255,255,255,0.15);
-            border-top-color: #0099ff;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-        #video-loading-label { font-size: 0.85em; color: #ccc; letter-spacing: 0.5px; }
-        #video-loading-pct { font-size: 1.3em; font-weight: 700; color: #fff;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* === 7. AR İÇİ BUTONLAR === */
+        /* === 5. AR İÇİ UI === */
         #ui-container {
             position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%; transform: translateX(-50%);
             z-index: 100; display: none; gap: 10px;
         }
-        body.ar-active #ui-container { display: flex; }
-        .action-btn {
-            padding: 12px 18px; font-size: 14px; border-radius: 30px;
-            background: rgba(20, 20, 28, 0.75);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.12);
-            font-weight: 600; cursor: pointer; color: #fff;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        .action-btn { padding: 12px 18px; font-size: 14px; border-radius: 30px;
+            background: rgba(255,255,255,0.95); border: none; font-weight: bold;
+            cursor: pointer; color: #222; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             font-family: inherit; min-height: 44px;
-            transition: transform 0.15s, background 0.2s;
         }
-        .action-btn:active { transform: scale(0.95); background: rgba(40, 40, 50, 0.85); }
+        .action-btn:active { transform: scale(0.95); }
 
-        /* === A-FRAME / MIND-AR — TAM EKRAN KAMERA === */
-        a-scene {
-            width: 100vw !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-        }
-        a-scene canvas.a-canvas {
-            background: transparent !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-            object-fit: cover !important;
-        }
-        /* Mind-AR'ın kamera videosu — genelde body altına veya overlay container'a eklenir.
-           Doğal en/boy oranında (16:9) kalmasın, ekranı tam doldursun (object-fit: cover). */
-        body.ar-active > video,
-        body.ar-active video:not([id^="vid"]):not([src^="#"]),
-        .mindar-ui-overlay,
-        .mindar-ui-overlay > video,
-        .mindar-ui-overlay > canvas {
-            position: fixed !important;
-            top: 0 !important; left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            object-fit: cover !important;
-        }
+        a-scene { width: 100% !important; height: 100% !important; }
     </style>
 </head>
 <body>
 
-    <!-- 1. YÜKLEME EKRANI (HER ŞEYDEN ÖNCE RENDER OLSUN) -->
+    <!-- 1. YÜKLEME -->
     <div id="loading-screen" class="overlay">
         <div class="logo-box">
             <img src="media_klasoru/kucukcekmece_logo.png" alt="Küçükçekmece Belediyesi">
@@ -238,39 +140,10 @@
         <div class="kurum-adi">KÜÇÜKÇEKMECE BELEDİYESİ<br>GENÇLİK MERKEZİ</div>
         <div class="uygulama-adi">Artırılmış Gerçeklik (AR)</div>
         <div class="progress-wrapper">
-            <div class="spinner-ring"></div>
+            <div class="spinner"></div>
             <div id="progress-text">0%</div>
         </div>
     </div>
-
-    <!-- HEMEN ŞİMDİ progress başlat - hiçbir şeyi bekleme.
-         Bu inline script bile A-Frame yüklenmese çalışır. -->
-    <script>
-        (function() {
-            console.log('[KCM-AR] Inline progress starter executed');
-            var progressEl = document.getElementById('progress-text');
-            var p = 0;
-            var iv = setInterval(function() {
-                if (!progressEl) progressEl = document.getElementById('progress-text');
-                if (!progressEl) return;
-                if (p < 92) {
-                    p += Math.floor(Math.random() * 4) + 2;
-                    if (p > 92) p = 92;
-                    progressEl.textContent = p + '%';
-                }
-            }, 250);
-            // Global referans → ana scriptten finish edebilelim
-            window.__kcmProgress = {
-                getValue: function() { return p; },
-                finish: function() {
-                    clearInterval(iv);
-                    if (progressEl) progressEl.textContent = '100%';
-                    console.log('[KCM-AR] Progress finished');
-                },
-                stop: function() { clearInterval(iv); }
-            };
-        })();
-    </script>
 
     <!-- 2. KVKK -->
     <div id="consent-screen" class="overlay" role="dialog" aria-modal="true" aria-labelledby="kvkk-title">
@@ -314,153 +187,121 @@
 
     <!-- 4. TARAMA YÖNLENDİRMESİ -->
     <div id="scanning-hint" class="hidden">
-        <div class="scan-hint-row">
-            <div class="scan-pulse">📷</div>
-            <p>Kameranızı sergi görseline doğrultun</p>
-        </div>
+        <div class="scan-icon">📷</div>
+        <p>Kameranızı sergi görseline doğrultun</p>
     </div>
 
-    <!-- 5. EŞLEŞME -->
-    <div id="match-toast">
-        <span class="check">✓</span>
-        <span>Görsel algılandı</span>
-    </div>
-
-    <!-- 6. VIDEO YÜKLEME -->
-    <div id="video-loading">
-        <div class="vid-spinner"></div>
-        <div id="video-loading-pct">0%</div>
-        <div id="video-loading-label">Video hazırlanıyor</div>
-    </div>
-
-    <!-- 6b. DEBUG OVERLAY — URL'ye ?debug=1 eklersen aktifleşir, ekranda log gösterir -->
-    <div id="debug-info" style="position:fixed; top:60px; left:8px; right:8px; max-height:40vh; overflow-y:auto; background:rgba(0,0,0,0.85); color:#0f0; font:10px/1.4 ui-monospace,'SF Mono',Consolas,monospace; padding:8px 10px; border-radius:8px; z-index:200; display:none; word-break:break-word; white-space:pre-wrap;"></div>
-
-    <!-- 7. AR İÇİ UI -->
+    <!-- 5. AR UI -->
     <div id="ui-container">
         <button id="audio-btn" class="action-btn" aria-label="Sesi aç">🔇 Sesi Aç</button>
     </div>
 
-    <!-- AR sahnesi buraya programatik olarak eklenecek -->
-    <div id="ar-scene-container"></div>
+    <!-- AR sahnesini config'ten dinamik olarak oluştur -->
+    <script>
+    /* ========================================================================
+       VIDEO CONFIG — 14 video için tek nokta. Her video için aspectRatio
+       değeri = yükseklik / genişlik (genişlik 1 birim sabit).
+       Örnekler:
+         16:9 yatay video  → 9/16  = 0.5625
+         9:16 dikey video  → 16/9  = 1.7778
+         1:1 kare video    → 1.0
+         4:5 dikey         → 1.25
+       Hedef görselin (resme oturma) en/boy oranıyla aynı olmalı.
+       ======================================================================== */
+    const VIDEO_CONFIG = [
+        { file: 'media_klasoru/video1.mp4',  aspectRatio: 1.45 },
+        { file: 'media_klasoru/video2.mp4',  aspectRatio: 0.57 },
+        { file: 'media_klasoru/video3.mp4',  aspectRatio: 1.85 },
+        { file: 'media_klasoru/video4.mp4',  aspectRatio: 0.57 },
+        { file: 'media_klasoru/video5.mp4',  aspectRatio: 1.0  },
+        { file: 'media_klasoru/video6.mp4',  aspectRatio: 1.0  },
+        { file: 'media_klasoru/video7.mp4',  aspectRatio: 1.0  },
+        { file: 'media_klasoru/video8.mp4',  aspectRatio: 1.0  },
+        { file: 'media_klasoru/video9.mp4',  aspectRatio: 1.0  },
+        { file: 'media_klasoru/video10.mp4', aspectRatio: 1.0  },
+        { file: 'media_klasoru/video11.mp4', aspectRatio: 1.0  },
+        { file: 'media_klasoru/video12.mp4', aspectRatio: 1.0  },
+        { file: 'media_klasoru/video13.mp4', aspectRatio: 1.0  },
+        { file: 'media_klasoru/video14.mp4', aspectRatio: 1.0  },
+    ];
+    const TARGETS_FILE = 'media_klasoru/targets.mind';
 
-    <!-- Video elementleri burada saklı durur — a-assets kullanmıyoruz çünkü
-         A-Frame'in asset sistemi 14 video ile texture binding'de sorun çıkarıyor.
-         a-video bu videoları #vidX ID'siyle bulup texture olarak kullanacak. -->
-    <div id="ar-videos-container" aria-hidden="true" style="position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none;"></div>
+    // AR sahnesini A-Frame yüklenmeden önce DOM'a yaz
+    let assetsHtml = '';
+    let entitiesHtml = '';
+    VIDEO_CONFIG.forEach((cfg, i) => {
+        const id = `vid${i}`;
+        // preload="none" → video sadece play() çağrısında indirilmeye başlar
+        assetsHtml += `<video id="${id}" src="${cfg.file}" loop muted playsinline webkit-playsinline preload="none" crossorigin="anonymous"></video>`;
+        entitiesHtml += `<a-entity mindar-image-target="targetIndex: ${i}" class="ar-target" data-video-id="${id}" data-index="${i}">
+            <a-video src="#${id}" position="0 0 0" width="1" height="${cfg.aspectRatio}"></a-video>
+        </a-entity>`;
+    });
 
-    <!-- A-Frame ve Mind-AR (loading screen render olduktan SONRA yüklenir) -->
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    document.write(`
+        <a-scene mindar-image="imageTargetSrc: ${TARGETS_FILE}; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;"
+                 renderer="colorManagement: true; alpha: true"
+                 vr-mode-ui="enabled: false"
+                 device-orientation-permission-ui="enabled: false">
+            <a-assets timeout="20000">${assetsHtml}</a-assets>
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+            ${entitiesHtml}
+        </a-scene>
+    `);
+    </script>
 
-    <!-- Ana uygulama -->
+    <!-- Ana uygulama mantığı -->
     <script>
     (function() {
         'use strict';
-        console.log('[KCM-AR] Main script start');
 
-        // ====== KONFİGÜRASYON ======
-        // Her video için: dosya yolu + en/boy oranı (yükseklik / genişlik)
-        // Hedef görselinin oranıyla aynı olmalı, aksi halde video resme oturmaz.
-        var VIDEO_CONFIG = [
-            { file: 'media_klasoru/video1.mp4',  aspectRatio: 1.45 },
-            { file: 'media_klasoru/video2.mp4',  aspectRatio: 0.57 },
-            { file: 'media_klasoru/video3.mp4',  aspectRatio: 1.85 },
-            { file: 'media_klasoru/video4.mp4',  aspectRatio: 0.57 },
-            { file: 'media_klasoru/video5.mp4',  aspectRatio: 1.0  },
-            { file: 'media_klasoru/video6.mp4',  aspectRatio: 1.0  },
-            { file: 'media_klasoru/video7.mp4',  aspectRatio: 1.0  },
-            { file: 'media_klasoru/video8.mp4',  aspectRatio: 1.0  },
-            { file: 'media_klasoru/video9.mp4',  aspectRatio: 1.0  },
-            { file: 'media_klasoru/video10.mp4', aspectRatio: 1.0  },
-            { file: 'media_klasoru/video11.mp4', aspectRatio: 1.0  },
-            { file: 'media_klasoru/video12.mp4', aspectRatio: 1.0  },
-            { file: 'media_klasoru/video13.mp4', aspectRatio: 1.0  },
-            { file: 'media_klasoru/video14.mp4', aspectRatio: 1.0  }
-        ];
-        var TARGETS_FILE = 'media_klasoru/targets.mind';
+        // === SABİTLER ===
+        const LOAD_TIMEOUT_MS = 12000;       // Yükleme zaman aşımı
+        const TARGET_LOST_DELAY_MS = 800;    // Tracking kaybında video durdurma gecikmesi
+        const PROGRESS_TICK_MS = 250;
+        const CONSENT_KEY = 'kcm_ar_consent_v1';
 
-        // ====== SABİTLER ======
-        var SCENE_LOAD_TIMEOUT = 8000;       // 8 sn — sahne yüklenmezse de devam et
-        var AFRAME_WAIT_TIMEOUT = 12000;     // 12 sn — A-Frame yüklenmezse hata göster
-        var TARGET_LOST_DELAY = 800;
-        var MATCH_TOAST_MS = 1800;
-        var CONSENT_KEY = 'kcm_ar_consent_v1';
+        // === REFERANSLAR ===
+        const $ = (id) => document.getElementById(id);
+        const loadingScreen = $('loading-screen');
+        const consentScreen = $('consent-screen');
+        const errorScreen   = $('error-screen');
+        const scanHint      = $('scanning-hint');
+        const uiContainer   = $('ui-container');
+        const progressText  = $('progress-text');
+        const consentCheck  = $('consent-check');
+        const startBtn      = $('start-btn');
+        const declineBtn    = $('decline-btn');
+        const audioBtn      = $('audio-btn');
 
-        // ====== REFERANSLAR ======
-        function $(id) { return document.getElementById(id); }
-        var loadingScreen = $('loading-screen');
-        var consentScreen = $('consent-screen');
-        var errorScreen   = $('error-screen');
-        var scanHint      = $('scanning-hint');
-        var matchToast    = $('match-toast');
-        var videoLoading  = $('video-loading');
-        var videoLoadPct  = $('video-loading-pct');
-        var consentCheck  = $('consent-check');
-        var startBtn      = $('start-btn');
-        var declineBtn    = $('decline-btn');
-        var audioBtn      = $('audio-btn');
+        // === ORTAM TESPİTİ ===
+        const ua = navigator.userAgent;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isAndroid = /Android/i.test(ua);
 
-        // ====== ORTAM TESPİTİ ======
-        var ua = navigator.userAgent;
-        var isIOS = /iPad|iPhone|iPod/.test(ua) ||
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        var isAndroid = /Android/i.test(ua);
-        console.log('[KCM-AR] Platform:', isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Other'));
-
-        // ====== DEBUG MOD — URL'ye ?debug=1 eklersen on-screen log açılır ======
-        var DEBUG_MODE = location.search.indexOf('debug=1') >= 0;
-        var debugEl = $('debug-info');
-        if (DEBUG_MODE && debugEl) debugEl.style.display = 'block';
-        function debugLog(msg) {
-            console.log('[KCM-AR]', msg);
-            if (!DEBUG_MODE || !debugEl) return;
-            var t = new Date().toTimeString().split(' ')[0];
-            var lines = (debugEl.textContent || '').split('\n');
-            lines.unshift(t + ' ' + msg);
-            debugEl.textContent = lines.slice(0, 40).join('\n');
-        }
-
-        // ====== HATA EKRANI ======
-        var errorShown = false;
-        function showError(title, message) {
-            errorShown = true;
-            console.error('[KCM-AR] Error:', title, '-', message);
-            if (window.__kcmProgress) window.__kcmProgress.stop();
-            $('error-title').textContent = title;
-            $('error-message').textContent = message;
-            $('error-ios-hint').style.display = isIOS ? 'block' : 'none';
-            $('error-android-hint').style.display = isAndroid ? 'block' : 'none';
-            loadingScreen.style.display = 'none';
-            consentScreen.style.display = 'none';
-            errorScreen.style.display = 'flex';
-        }
-
-        // Global hata yakalayıcı — beklenmeyen JS hatalarını gör
-        window.addEventListener('error', function(e) {
-            console.error('[KCM-AR] Global error:', e.message, e.filename, e.lineno);
-        });
-
-        // ====== ÖN KONTROLLER ======
+        // === ADIM 0: ÖN KONTROLLER ===
         function preflightCheck() {
-            console.log('[KCM-AR] Preflight check, protocol:', location.protocol);
+            // HTTPS zorunlu (localhost hariç)
             if (location.protocol !== 'https:' &&
                 location.hostname !== 'localhost' &&
                 location.hostname !== '127.0.0.1') {
                 showError('Güvenli Bağlantı Gerekli',
-                    'AR deneyimi için sayfaya HTTPS üzerinden erişmeniz gerekmektedir.');
+                    'AR deneyimi için sayfaya HTTPS üzerinden erişmeniz gerekmektedir. Lütfen adres çubuğunda https:// ile başlayan bağlantıyı kullanın.');
                 return false;
             }
+            // getUserMedia desteği
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 showError('Tarayıcı Desteklenmiyor',
                     'Tarayıcınız kamera erişimini desteklemiyor. Lütfen güncel bir tarayıcı (iOS Safari 14+, Chrome, Firefox) kullanın.');
                 return false;
             }
+            // WebGL desteği
             try {
-                var c = document.createElement('canvas');
+                const c = document.createElement('canvas');
                 if (!c.getContext('webgl') && !c.getContext('experimental-webgl')) {
                     showError('Grafik Desteği Yok',
-                        'Cihazınız WebGL grafik teknolojisini desteklemiyor.');
+                        'Cihazınız WebGL grafik teknolojisini desteklemiyor. AR deneyimi çalıştırılamaz.');
                     return false;
                 }
             } catch(e) {
@@ -470,164 +311,79 @@
             return true;
         }
 
-        // ====== A-FRAME BEKLEME ======
-        function waitForAframe(callback) {
-            var start = Date.now();
-            console.log('[KCM-AR] Waiting for A-Frame...');
-            (function check() {
-                if (typeof window.AFRAME !== 'undefined') {
-                    console.log('[KCM-AR] A-Frame ready in', Date.now() - start, 'ms');
-                    callback(true);
-                } else if (Date.now() - start > AFRAME_WAIT_TIMEOUT) {
-                    console.error('[KCM-AR] A-Frame load timeout');
-                    callback(false);
-                } else {
-                    setTimeout(check, 100);
+        // === HATA EKRANI ===
+        function showError(title, message) {
+            $('error-title').textContent = title;
+            $('error-message').textContent = message;
+            $('error-ios-hint').style.display = isIOS ? 'block' : 'none';
+            $('error-android-hint').style.display = isAndroid ? 'block' : 'none';
+            loadingScreen.style.display = 'none';
+            consentScreen.style.display = 'none';
+            errorScreen.style.display = 'flex';
+        }
+
+        // === ADIM 1: YÜKLEME ===
+        let progress = 0;
+        let progressInterval = null;
+        let isLoaded = false;
+
+        function startProgress() {
+            progressInterval = setInterval(() => {
+                if (progress < 92) {
+                    progress += Math.floor(Math.random() * 4) + 2;
+                    if (progress > 92) progress = 92;
+                    progressText.textContent = progress + '%';
                 }
-            })();
+            }, PROGRESS_TICK_MS);
         }
 
-        // ====== SAHNE OLUŞTURMA ======
-        function buildScene() {
-            console.log('[KCM-AR] Building scene with', VIDEO_CONFIG.length, 'targets');
-            try {
-                var sceneContainer = $('ar-scene-container');
-                var videoContainer = $('ar-videos-container');
-
-                // 1. Video elementlerini gizli container'a oluştur (a-assets KULLANMA)
-                VIDEO_CONFIG.forEach(function(cfg, i) {
-                    var v = document.createElement('video');
-                    // Attribute'ları SRC'den ÖNCE ayarla — yükleme davranışını kontrol için kritik
-                    v.id = 'vid' + i;
-                    v.loop = true;
-                    v.muted = true;
-                    v.preload = 'metadata'; // metadata + ilk frame: ~100KB, texture oluşturmak için yeterli
-                    v.setAttribute('playsinline', '');
-                    v.setAttribute('webkit-playsinline', '');
-                    // crossOrigin YOK — same-origin, GitHub Pages CORS göndermiyor
-                    // Hata dinleyicisi — yüklenemezse veya format desteklenmezse net mesaj
-                    v.addEventListener('error', function() {
-                        var err = this.error;
-                        var msg = this.id + ' HATA ';
-                        if (err) {
-                            if (err.code === 1) msg += 'ABORTED (yükleme iptal)';
-                            else if (err.code === 2) msg += 'NETWORK (ağ hatası, dosya yok olabilir)';
-                            else if (err.code === 3) msg += 'DECODE (video bozuk)';
-                            else if (err.code === 4) msg += 'NOT_SUPPORTED (dosya yok ya da format uyumsuz - en muhtemel)';
-                            else msg += 'kod=' + err.code;
-                        }
-                        console.error('[KCM-AR]', msg);
-                        debugLog(msg);
-                    });
-                    // Src en SON — load tetiklenir
-                    v.src = cfg.file;
-                    videoContainer.appendChild(v);
-                });
-                console.log('[KCM-AR]', VIDEO_CONFIG.length, 'video element appended');
-
-                // 2. AR sahnesini oluştur — a-assets YOK, sadece kamera ve targetlar
-                var scene = document.createElement('a-scene');
-                scene.setAttribute('mindar-image',
-                    'imageTargetSrc: ' + TARGETS_FILE + '; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.001;');
-                scene.setAttribute('renderer', 'colorManagement: true; alpha: true');
-                scene.setAttribute('vr-mode-ui', 'enabled: false');
-                scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-
-                var camera = document.createElement('a-camera');
-                camera.setAttribute('position', '0 0 0');
-                camera.setAttribute('look-controls', 'enabled: false');
-                scene.appendChild(camera);
-
-                VIDEO_CONFIG.forEach(function(cfg, i) {
-                    var entity = document.createElement('a-entity');
-                    entity.setAttribute('mindar-image-target', 'targetIndex: ' + i);
-                    entity.classList.add('ar-target');
-                    entity.dataset.videoId = 'vid' + i;
-                    entity.dataset.index = String(i);
-
-                    var aVideo = document.createElement('a-video');
-                    aVideo.setAttribute('src', '#vid' + i);
-                    aVideo.setAttribute('position', '0 0 0');
-                    aVideo.setAttribute('width', '1');
-                    aVideo.setAttribute('height', String(cfg.aspectRatio));
-                    aVideo.setAttribute('scale', '1 1 1');
-                    entity.appendChild(aVideo);
-
-                    scene.appendChild(entity);
-                });
-
-                sceneContainer.appendChild(scene);
-                console.log('[KCM-AR] Scene attached to DOM (without a-assets)');
-                return scene;
-            } catch (err) {
-                console.error('[KCM-AR] Scene build error:', err);
-                showError('Sahne Oluşturulamadı', 'AR sahnesi hazırlanırken hata: ' + err.message);
-                return null;
-            }
-        }
-
-        // ====== YÜKLEME TAMAMLA ======
-        var loadFinished = false;
         function finishLoading() {
-            if (loadFinished || errorShown) return;
-            loadFinished = true;
-            console.log('[KCM-AR] Finishing loading');
-            if (window.__kcmProgress) window.__kcmProgress.finish();
-            setTimeout(function() {
+            if (isLoaded) return;
+            isLoaded = true;
+            clearInterval(progressInterval);
+            progressText.textContent = '100%';
+            setTimeout(() => {
                 loadingScreen.style.display = 'none';
-                consentScreen.style.display = 'flex';
+                showConsent();
             }, 400);
         }
 
-        // ====== KVKK ======
-        consentCheck.addEventListener('change', function() {
+        // === ADIM 2: KVKK ===
+        function showConsent() {
+            consentScreen.style.display = 'flex';
+        }
+
+        consentCheck.addEventListener('change', () => {
             startBtn.disabled = !consentCheck.checked;
         });
 
-        declineBtn.addEventListener('click', function() {
+        declineBtn.addEventListener('click', () => {
+            // Kullanıcı reddetti — uygulamayı kapat
             consentScreen.style.display = 'none';
             showError('Onay Gerekli',
-                'AR deneyimini kullanabilmek için kullanım koşullarını kabul etmeniz gerekmektedir.');
+                'AR deneyimini kullanabilmek için kullanım koşullarını kabul etmeniz gerekmektedir. Sayfayı yenileyerek tekrar deneyebilirsiniz.');
         });
 
-        // ====== AR BAŞLAT ======
-        startBtn.addEventListener('click', async function() {
+        // === ADIM 3: KAMERA İZNİ + AR BAŞLAT ===
+        // iOS'ta getUserMedia MUTLAKA kullanıcı dokunma anından senkron tetiklenmeli.
+        // Bu yüzden click handler'da hemen async olarak izin istiyoruz.
+        startBtn.addEventListener('click', async function onStartClick() {
             if (!consentCheck.checked) return;
-            console.log('[KCM-AR] Start button clicked');
 
+            // KVKK onayını yerel olarak işaretle (sonraki açılışlarda istenirse atlatılabilir)
             try {
-                localStorage.setItem(CONSENT_KEY, JSON.stringify({ accepted: true, ts: Date.now() }));
-            } catch(e) {}
+                localStorage.setItem(CONSENT_KEY, JSON.stringify({
+                    accepted: true,
+                    ts: Date.now()
+                }));
+            } catch(e) { /* localStorage erişilemez olabilir, sessizce geç */ }
 
             startBtn.disabled = true;
             startBtn.textContent = 'Kamera başlatılıyor...';
 
-            // ====== KRİTİK: VIDEO WARMUP ======
-            // Bu kısım kullanıcı dokunma anının (gesture context) İÇİNDE — hiçbir await öncesi.
-            // 14 video için play()→pause() yaparak browser'ın autoplay policy'sini bertaraf ediyoruz.
-            // Bu yapılmazsa mind-ar'ın targetFound event'i fire ettiğinde kullanıcı gesture'u
-            // çoktan tükenmiş olur ve play() sessizce reddedilir → video oynamaz.
             try {
-                var warmupVids = document.querySelectorAll('#ar-videos-container video');
-                debugLog('Warmup: ' + warmupVids.length + ' video');
-                warmupVids.forEach(function(v) {
-                    v.muted = true;
-                    var wp = v.play();
-                    if (wp && wp.then) {
-                        wp.then(function() {
-                            v.pause();
-                            v.currentTime = 0;
-                            debugLog('Warm OK: ' + v.id);
-                        }).catch(function(e) {
-                            debugLog('Warm FAIL: ' + v.id + ' → ' + e.name);
-                        });
-                    }
-                });
-            } catch(e) { console.warn('[KCM-AR] Warmup error:', e); }
-
-            try {
-                console.log('[KCM-AR] Requesting camera permission');
-                var stream = await navigator.mediaDevices.getUserMedia({
+                // 1. ADIM: İzin ön-talebi (iOS için kritik — kullanıcı gesture penceresi içinde)
+                const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: { ideal: 'environment' },
                         width:  { ideal: 1280 },
@@ -635,27 +391,24 @@
                     },
                     audio: false
                 });
-                stream.getTracks().forEach(function(t) { t.stop(); });
-                console.log('[KCM-AR] Camera permission granted');
+                // İzin alındı — bu stream'i serbest bırak, Mind-AR kendi stream'ini açacak
+                stream.getTracks().forEach(t => t.stop());
 
-                var sceneEl = document.querySelector('a-scene');
-                if (!sceneEl) throw new Error('AR sahnesi bulunamadı.');
-
-                var system = sceneEl.systems && sceneEl.systems['mindar-image-system'];
-                if (!system) throw new Error('Mind-AR sistemi yüklenmedi.');
+                // 2. ADIM: Mind-AR'ı başlat
+                const sceneEl = document.querySelector('a-scene');
+                if (!sceneEl || !sceneEl.systems['mindar-image-system']) {
+                    throw new Error('AR sistemi yüklenemedi.');
+                }
 
                 consentScreen.style.display = 'none';
-                document.body.classList.add('ar-active');
-                document.documentElement.classList.add('ar-active');
+                uiContainer.style.display = 'flex';
                 scanHint.classList.remove('hidden');
 
-                console.log('[KCM-AR] Starting Mind-AR system');
-                await system.start();
-                console.log('[KCM-AR] Mind-AR started, binding target events');
+                await sceneEl.systems['mindar-image-system'].start();
                 bindTargetEvents();
 
             } catch (err) {
-                console.error('[KCM-AR] AR start failed:', err);
+                console.error('AR başlatma hatası:', err);
                 handleCameraError(err);
             }
         });
@@ -663,214 +416,112 @@
         function handleCameraError(err) {
             startBtn.disabled = false;
             startBtn.textContent = 'Deneyimi Başlat';
-            document.body.classList.remove('ar-active');
-            document.documentElement.classList.remove('ar-active');
-            var name = err && err.name;
+
+            const name = err && err.name;
             if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
                 showError('Kamera İzni Reddedildi',
-                    'Kamera erişimine izin verilmediği için AR deneyimi başlatılamıyor.');
+                    'Kamera erişimine izin verilmediği için AR deneyimi başlatılamıyor. Tarayıcı ayarlarından kamera iznini açıp tekrar deneyebilirsiniz.');
             } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-                showError('Kamera Bulunamadı', 'Cihazınızda kullanılabilir bir arka kamera bulunamadı.');
+                showError('Kamera Bulunamadı',
+                    'Cihazınızda kullanılabilir bir arka kamera bulunamadı.');
             } else if (name === 'NotReadableError' || name === 'TrackStartError') {
-                showError('Kamera Meşgul', 'Kameranız başka bir uygulama tarafından kullanılıyor olabilir.');
+                showError('Kamera Meşgul',
+                    'Kameranız başka bir uygulama tarafından kullanılıyor olabilir. Diğer uygulamaları kapatıp tekrar deneyin.');
             } else if (name === 'OverconstrainedError') {
-                showError('Kamera Uyumsuz', 'Cihazınızın kamerası gerekli özellikleri desteklemiyor.');
+                showError('Kamera Uyumsuz',
+                    'Cihazınızın kamerası gerekli özellikleri desteklemiyor.');
             } else {
-                showError('Beklenmeyen Hata', 'AR başlatılırken bir sorun oluştu: ' + (err.message || 'Bilinmeyen hata'));
+                showError('Beklenmeyen Hata',
+                    'AR başlatılırken bir sorun oluştu: ' + (err.message || 'Bilinmeyen hata'));
             }
         }
 
-        // ====== EŞLEŞME TOAST ======
-        var toastTimer = null;
-        function showMatchToast() {
-            matchToast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(function() {
-                matchToast.classList.remove('show');
-            }, MATCH_TOAST_MS);
-        }
-
-        // ====== VIDEO YÜKLEME GÖSTERGESİ ======
-        var activeLoaders = {};
-
-        function attachVideoLoadingUI(videoEl) {
-            if (videoEl.readyState >= 3) return;
-            videoLoading.classList.add('show');
-            videoLoadPct.textContent = '0%';
-
-            function updatePct() {
-                if (videoEl.buffered && videoEl.buffered.length > 0 && videoEl.duration > 0) {
-                    var loaded = videoEl.buffered.end(videoEl.buffered.length - 1);
-                    var pct = Math.min(100, Math.round((loaded / videoEl.duration) * 100));
-                    videoLoadPct.textContent = pct + '%';
-                }
-            }
-            function onReady() {
-                videoLoading.classList.remove('show');
-                cleanup();
-            }
-            function cleanup() {
-                videoEl.removeEventListener('progress', updatePct);
-                videoEl.removeEventListener('loadeddata', updatePct);
-                videoEl.removeEventListener('canplay', onReady);
-                videoEl.removeEventListener('playing', onReady);
-                delete activeLoaders[videoEl.id];
-            }
-            videoEl.addEventListener('progress', updatePct);
-            videoEl.addEventListener('loadeddata', updatePct);
-            videoEl.addEventListener('canplay', onReady);
-            videoEl.addEventListener('playing', onReady);
-            activeLoaders[videoEl.id] = cleanup;
-
-            setTimeout(function() {
-                if (activeLoaders[videoEl.id]) {
-                    videoLoading.classList.remove('show');
-                    cleanup();
-                }
-            }, 15000);
-        }
-
-        function hideVideoLoading(videoEl) {
-            videoLoading.classList.remove('show');
-            if (activeLoaders[videoEl.id]) activeLoaders[videoEl.id]();
-        }
-
-        // ====== HEDEF EVENTLERİ ======
-        var lostTimers = {};
-        var activeTargetCount = 0;
+        // === ADIM 4: HEDEF EVENTLERİ + VIDEO YÖNETİMİ ===
+        // Her video için kayıp zamanlayıcısı (titreme önleme)
+        const lostTimers = new Map();
+        let activeTargetCount = 0;
 
         function bindTargetEvents() {
-            var targets = document.querySelectorAll('.ar-target');
-            console.log('[KCM-AR] Binding events for', targets.length, 'targets');
-            targets.forEach(function(target) {
-                var vidId = target.dataset.videoId;
-                var videoEl = document.getElementById(vidId);
+            document.querySelectorAll('.ar-target').forEach(target => {
+                const vidId = target.dataset.videoId;
+                const videoEl = document.getElementById(vidId);
                 if (!videoEl) return;
 
-                target.addEventListener('targetFound', function() {
-                    console.log('[KCM-AR] Target found:', vidId, 'readyState:', videoEl.readyState);
-                    if (lostTimers[vidId]) {
-                        clearTimeout(lostTimers[vidId]);
-                        delete lostTimers[vidId];
+                target.addEventListener('targetFound', () => {
+                    // Önceki kayıp zamanlayıcısı varsa iptal et
+                    if (lostTimers.has(vidId)) {
+                        clearTimeout(lostTimers.get(vidId));
+                        lostTimers.delete(vidId);
                     }
+
                     activeTargetCount++;
                     scanHint.classList.add('hidden');
-                    showMatchToast();
-                    attachVideoLoadingUI(videoEl);
 
-                    // 1. Video yüklenmediyse zorla yükle
-                    if (videoEl.readyState === 0 || videoEl.networkState === 3) {
-                        console.log('[KCM-AR] Forcing load() for', vidId);
-                        try { videoEl.load(); } catch(e) { console.warn('Load err:', e); }
+                    // Video oynatma — preload="none" olduğu için ilk play() indirmeyi başlatır
+                    const playPromise = videoEl.play();
+                    if (playPromise && playPromise.catch) {
+                        playPromise.catch(err => {
+                            // iOS'ta autoplay kısıtlaması — sessizken sorun olmaz ama yine de logla
+                            console.warn('Video play hatası:', err);
+                        });
                     }
-
-                    // 2. Play deneme — başarısızsa canplay event'inde tekrar dene
-                    function tryPlay(retryCount) {
-                        retryCount = retryCount || 0;
-                        var pp = videoEl.play();
-                        if (pp && pp.then) {
-                            pp.then(function() {
-                                console.log('[KCM-AR] Play started:', vidId);
-                            }).catch(function(e) {
-                                console.warn('[KCM-AR] Play attempt', retryCount, 'failed for', vidId, e.name);
-                                if (retryCount < 3) {
-                                    videoEl.addEventListener('canplay', function onCp() {
-                                        videoEl.removeEventListener('canplay', onCp);
-                                        tryPlay(retryCount + 1);
-                                    }, { once: true });
-                                }
-                            });
-                        }
-                    }
-                    tryPlay();
-
-                    // 3. Video oynamaya başlayınca three.js material'ını zorla güncelle
-                    //    (preload="metadata" durumunda texture boş olabilir)
-                    var refreshDone = false;
-                    function refreshTexture() {
-                        if (refreshDone) return;
-                        refreshDone = true;
-                        try {
-                            var aVideo = target.querySelector('a-video');
-                            if (aVideo) {
-                                var mesh = aVideo.getObject3D('mesh');
-                                if (mesh && mesh.material) {
-                                    if (mesh.material.map) {
-                                        mesh.material.map.needsUpdate = true;
-                                    }
-                                    mesh.material.needsUpdate = true;
-                                    console.log('[KCM-AR] Texture refreshed for', vidId);
-                                }
-                            }
-                        } catch(e) { console.warn('Texture refresh err:', e); }
-                    }
-                    videoEl.addEventListener('playing', refreshTexture, { once: true });
-                    videoEl.addEventListener('loadeddata', refreshTexture, { once: true });
                 });
 
-                target.addEventListener('targetLost', function() {
-                    lostTimers[vidId] = setTimeout(function() {
+                target.addEventListener('targetLost', () => {
+                    // Anlık tracking kayıplarına karşı debounce
+                    const timer = setTimeout(() => {
                         videoEl.pause();
                         videoEl.currentTime = 0;
-                        hideVideoLoading(videoEl);
                         activeTargetCount = Math.max(0, activeTargetCount - 1);
-                        if (activeTargetCount === 0) scanHint.classList.remove('hidden');
-                        delete lostTimers[vidId];
-                    }, TARGET_LOST_DELAY);
+                        if (activeTargetCount === 0) {
+                            scanHint.classList.remove('hidden');
+                        }
+                        lostTimers.delete(vidId);
+                    }, TARGET_LOST_DELAY_MS);
+                    lostTimers.set(vidId, timer);
                 });
             });
         }
 
-        // ====== SES ======
-        var isMuted = true;
+        // === ADIM 5: SES KONTROLÜ ===
+        let isMuted = true;
         audioBtn.addEventListener('click', function() {
             isMuted = !isMuted;
-            var vids = document.querySelectorAll('video[id^="vid"]');
-            vids.forEach(function(v) { v.muted = isMuted; });
+            document.querySelectorAll('video').forEach(v => { v.muted = isMuted; });
             this.textContent = isMuted ? '🔇 Sesi Aç' : '🔊 Sesi Kapat';
+            this.setAttribute('aria-label', isMuted ? 'Sesi aç' : 'Sesi kapat');
         });
 
-        // ====== SAYFA GİZLEME ======
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                document.querySelectorAll('video[id^="vid"]').forEach(function(v) { v.pause(); });
-            }
-        });
+        // === BAŞLAT ===
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!preflightCheck()) return;
 
-        // ====== BAŞLAT ======
-        if (!preflightCheck()) return;
+            startProgress();
 
-        waitForAframe(function(ok) {
-            if (!ok) {
-                showError('AR Yüklenemedi',
-                    'AR kütüphaneleri yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.');
-                return;
-            }
-
-            var scene = buildScene();
-            if (!scene) return;
-
-            // Sahne yüklendiğinde bekleme bitir
-            if (scene.hasLoaded) {
-                console.log('[KCM-AR] Scene already loaded');
-                finishLoading();
-            } else {
-                scene.addEventListener('loaded', function() {
-                    console.log('[KCM-AR] Scene loaded event');
+            const sceneEl = document.querySelector('a-scene');
+            if (sceneEl) {
+                if (sceneEl.hasLoaded) {
                     finishLoading();
-                });
-            }
-
-            // Güvenlik kilidi: sahne loaded fire etmese bile devam et
-            setTimeout(function() {
-                if (!loadFinished) {
-                    console.warn('[KCM-AR] Scene load timeout, proceeding');
-                    finishLoading();
+                } else {
+                    sceneEl.addEventListener('loaded', finishLoading);
                 }
-            }, SCENE_LOAD_TIMEOUT);
+            }
+
+            // Güvenlik kilidi: scene loaded eventi tetiklenmezse de devam et
+            setTimeout(finishLoading, LOAD_TIMEOUT_MS);
         });
 
+        // Sayfa görünmez olduğunda tüm videoları durdur (pil/CPU tasarrufu)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                document.querySelectorAll('video').forEach(v => v.pause());
+            }
+        });
     })();
     </script>
+
+    <!-- Google Analytics — SADECE KVKK onayından sonra yüklenecek
+         Yukarıdaki ana kodda startBtn click handler'a aşağıyı taşıyabilirsin
+         veya consent kontrolüyle birlikte çağırabilirsin. -->
 </body>
 </html>
